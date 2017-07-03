@@ -5,10 +5,10 @@ class Spoiler < ActiveRecord::Base
   def attachment_safe
     [
       {
-        "fallback": "Cannot display spoiler text. :(",
+        "fallback": safe_text,
         "callback_id": id,
         "attachment_type": "default",
-        "text": "posted by #{author}",
+        "text": safe_text,
         "actions": [
           {
             "name": "show_spoiler",
@@ -17,7 +17,8 @@ class Spoiler < ActiveRecord::Base
             "type": "button",
             "value": "show"
           }
-        ]
+        ],
+        "footer": "Posted by #{author}"
       }
     ]
   end
@@ -25,9 +26,11 @@ class Spoiler < ActiveRecord::Base
   def attachment_spoiler(message_ts)
     [
       {
-        "fallback": "Cannot display additional spoiler info. :(",
+        "fallback": spoiler_text,
         "callback_id": id,
-        "text": "#{author} | <#{message_link(message_ts)}|original message>"
+        "text": spoiler_text,
+        "footer": "Posted by #{author} (<#{message_link(message_ts)}|Original Post>)",
+        "ts": message_ts
       }
     ]
   end

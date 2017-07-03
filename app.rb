@@ -21,7 +21,6 @@ class SpoilerBot < Sinatra::Application
 
     client.chat_postMessage(
       channel: spoiler.channel_id,
-      text: spoiler.safe_text,
       attachments: spoiler.attachment_safe
     )
 
@@ -41,7 +40,6 @@ class SpoilerBot < Sinatra::Application
 
     client.chat_postMessage(
       channel: user_id,
-      text: spoiler.spoiler_text,
       attachments: spoiler.attachment_spoiler(message_ts)
     )
 
