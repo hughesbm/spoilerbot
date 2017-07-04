@@ -1,54 +1,50 @@
 require 'dotenv/load'
 require 'sinatra/base'
-require 'sinatra/activerecord'
 require './config/slack'
 require './models/spoiler'
+require './services/message_poster'
 
 class SpoilerBot < Sinatra::Application
   client = Slack::Web::Client.new
-
   client.auth_test
+  message_poster = MessagePoster.new(client)
 
   post '/slack/spoilerbot/post' do
-    halt 403 unless request_authentic?(params[:token])
+    halt 403 unless request_authentic?(params[:token], params[:team_domain])
 
-    spoiler = Spoiler.create(
-      author: params[:user_name],
-      channel_id: params[:channel_id],
-      team_domain: params[:team_domain],
-      text: params[:text]
-    )
+    if params[:text] == 'help'
+      halt 200, {'Content-Type' => 'application/json'}, message_poster.help
+    else
+      spoiler = Spoiler.new(params)
+      message_poster.post(spoiler, 'safe')
 
-    client.chat_postMessage(
-      channel: spoiler.channel_id,
-      attachments: spoiler.attachment_safe
-    )
-
-    halt 200
+      halt 200
+    end
   end
 
   post '/slack/spoilerbot/show' do
     payload = JSON.parse(params['payload'], symbolize_names: true)
 
-    halt 403 unless request_authentic?(payload[:token])
+    halt 403 unless request_authentic?(payload[:token], payload[:team][:domain])
 
-    message_ts = payload[:message_ts]
-    spoiler_id = payload[:callback_id]
-    user_id = payload[:user][:id]
+    spoiler_params = {
+      channel_id: payload[:channel][:id],
+      team_domain: payload[:team][:domain],
+      text: payload[:callback_id],
+      timestamp: payload[:message_ts],
+      user_name: payload[:original_message][:attachments][0][:footer].split(' ').last
+    }
 
-    spoiler = Spoiler.find(spoiler_id)
-
-    client.chat_postMessage(
-      channel: user_id,
-      attachments: spoiler.attachment_spoiler(message_ts)
-    )
+    spoiler = Spoiler.new(spoiler_params)
+    message_poster.post(spoiler, 'spoiler')
 
     halt 200
   end
 
   private
 
-  def request_authentic?(token)
-    token == ENV['SLACK_VERIFICATION_TOKEN']
+  def request_authentic?(token, team_domain)
+    token == ENV['SLACK_VERIFICATION_TOKEN'] &&
+      team_domain == ENV['TEAM_DOMAIN']
   end
 end
