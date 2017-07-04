@@ -1,10 +1,11 @@
 class Spoiler
-  attr_reader :channel_id, :team_domain, :text, :user_name
+  attr_reader :channel_id, :team_domain, :text, :timestamp, :user_name
 
   def initialize(params)
     @channel_id = params[:channel_id]
     @team_domain = params[:team_domain]
     @text = params[:text]
+    @timestamp = params[:timestamp]
     @user_name = params[:user_name]
   end
 
