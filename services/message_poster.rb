@@ -28,9 +28,9 @@ class MessagePoster
     }.to_json
   end
 
-  def post(spoiler, type)
+  def post(spoiler, type, recipient=nil)
     client.chat_postMessage(
-      channel: spoiler.channel_id,
+      channel: recipient.nil? ? spoiler.channel_id : recipient,
       attachments: send(('attachment_'+type).to_sym, spoiler)
     )
   end

@@ -36,7 +36,7 @@ class SpoilerBot < Sinatra::Application
     }
 
     spoiler = Spoiler.new(spoiler_params)
-    message_poster.post(spoiler, 'spoiler')
+    message_poster.post(spoiler, 'spoiler', recipient=payload[:user][:id])
 
     halt 200
   end
