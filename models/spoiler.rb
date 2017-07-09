@@ -17,6 +17,6 @@ class Spoiler
   end
 
   def spoiler_text
-    text.match?(SAFE_PATTERN) ? text[SPOILER_PATTERN] : text
+    text =~ SAFE_PATTERN ? text[SPOILER_PATTERN] : text
   end
 end
